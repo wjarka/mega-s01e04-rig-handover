@@ -18,3 +18,12 @@ describe('status board', () => {
     expect(await res.json()).toEqual({ ok: true, lane: 'lane-07' });
   });
 });
+
+describe('digest page', () => {
+  it('renders the night with its jobs', async () => {
+    const res = await createApp(config).request('/digest/2026-10-28');
+    const html = await res.text();
+    expect(res.status).toBe(200);
+    expect(html).toContain('<title>rig · digest</title>');
+  });
+});
