@@ -1,3 +1,6 @@
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 
@@ -11,6 +14,23 @@ describe('status board', () => {
     expect(res.status).toBe(200);
     expect(html).toContain('TEST-MARKER');
     expect(html).toContain('2026-10-28');
+  });
+
+  it('links each night to its digest with ok / retry / fail counts', async () => {
+    const html = await (await createApp(config).request('/')).text();
+    expect(html).toContain('<a href="/digest/2026-10-28">2026-10-28</a> · 4 ok · 0 retry · 1 fail');
+    expect(html).toContain('<a href="/digest/2026-10-27">2026-10-27</a> · 4 ok · 0 retry · 0 fail');
+  });
+
+  it('shows — for the counts of a night whose file cannot be read', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'rig-status-'));
+    try {
+      mkdirSync(join(dir, '2026-01-04.jsonl'));
+      const html = await (await createApp({ ...config, runsDir: dir }).request('/')).text();
+      expect(html).toContain('<a href="/digest/2026-01-04">2026-01-04</a> · — ok · — retry · — fail');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('health answers with the lane id', async () => {

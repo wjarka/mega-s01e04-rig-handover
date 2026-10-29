@@ -1,4 +1,21 @@
-import type { Status } from '../status.js';
+import type { NightSummary, Status } from '../status.js';
+
+const STATUSES = ['ok', 'retry', 'fail'] as const;
+
+// `2026-10-28 · 4 ok · 0 retry · 1 fail`; `—` for each count when the file cannot be read.
+function Night({ night }: { night: NightSummary }) {
+  return (
+    <>
+      <a href={`/digest/${night.night}`}>{night.night}</a>
+      {STATUSES.map((s) => (
+        <>
+          {' · '}
+          {night.counts ? `${night.counts[s]} ${s}` : `— ${s}`}
+        </>
+      ))}
+    </>
+  );
+}
 
 export function StatusBoard({ status }: { status: Status }) {
   return (
@@ -20,7 +37,9 @@ export function StatusBoard({ status }: { status: Status }) {
       ) : (
         <ul>
           {status.nights.map((n) => (
-            <li>{n}</li>
+            <li>
+              <Night night={n} />
+            </li>
           ))}
         </ul>
       )}
